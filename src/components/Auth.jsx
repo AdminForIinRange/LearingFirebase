@@ -10,6 +10,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userName, setUserName] = useState("");
+  const [profilePic, setProfilePic] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
 
   // Function to fetch user profile information
@@ -17,6 +18,10 @@ export default function Auth() {
     if (user) {
       const displayName = user.displayName;
       setUserName(displayName);
+      const photoURL = user.photoURL
+      setProfilePic(photoURL);
+
+      
     } else {
       setUserName("");
     }
@@ -78,6 +83,7 @@ export default function Auth() {
         <div>
           <p>Welcome {email}</p>
           {userName && <p>Hello, {userName}</p>}
+          {profilePic && <img src={profilePic} /> }
           <button onClick={handleSignOut}>Sign Out</button>
         </div>
       ) : (
