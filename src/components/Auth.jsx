@@ -12,9 +12,18 @@ export default function Auth() {
   // const [showPassword, setShowPassword] = useState(false);
   // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  console.log(auth?.currentUser?.email);
+
   const SignIn = async () => {
 
-    await createUserWithEmailAndPassword(auth, email, password)
+    try {
+        await createUserWithEmailAndPassword(auth, email, password)
+    } catch (error) {
+        console.log(error);
+        alert(error.message)
+    
+        
+    }
 
 
   };
@@ -22,7 +31,7 @@ export default function Auth() {
     <div>
       <input
       type="email"
-        placeholder="Username"
+        placeholder="email"
         onChange={(e) => {
           setEmail(e.target.value);
           
