@@ -3,7 +3,7 @@ import { doc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import Auth from "./components/Auth";
 import { db, auth } from "./config/firebase";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc,query,where   } from "firebase/firestore";
 
 export default function App() {
   const [Runs, setRuns] = useState(null);
@@ -18,18 +18,25 @@ export default function App() {
   useEffect(() => {
     const getRuns = async () => {
       try {
-        const data = await getDocs(runsCollectionRef);
-        const filteredData = data.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-        }));
-        setRuns(filteredData);
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          const querySnapshot = await getDocs(
+            query(runsCollectionRef, where("userId", "==", currentUser.uid))
+          );
+          const filteredData = querySnapshot.docs.map((doc) => ({
+            ...doc.data(),
+            id: doc.id,
+          }));
+          setRuns(filteredData);
+        } else {
+          setRuns(null); // No user is logged in, so clear the runs data
+        }
       } catch (error) {
         console.log(error);
         alert(error.message);
       }
     };
-
+  
     getRuns();
   }, [runsCollectionRef]);
 
@@ -42,7 +49,7 @@ export default function App() {
           Speed: speed,
           Mood: mood,
           Distance: distance,
-          userId: currentUser?.uid,
+          userId: auth?.currentUser?.uid,
         });
         // Clear the input fields after submission
         setCalories(0);
@@ -60,16 +67,30 @@ export default function App() {
   };
 
   const deleteRun = async (id) => {
-    const runsDoc = doc(db, "Runs", id);
-
-    await deleteDoc(runsDoc);
+    try {
+      const runsDoc = doc(db, "Runs", id);
+      await deleteDoc(runsDoc);
+    } catch (error) {
+      console.error("Error deleting run:", error);
+      alert("Error deleting run: " + error.message);
+    }
   };
+  
 
   const updateMood = async (id) => {
-    const runsDoc = doc(db, "Runs", id);
-
-    await updateDoc(runsDoc, {Mood: updateMoods});
-    setUpdateMoods("")
+    try {
+      const runsDoc = doc(db, "Runs", id);
+  
+      await updateDoc(runsDoc, {Mood: updateMoods});
+      setUpdateMoods("")
+    } catch (error) {
+      console.error("Error updating mood:", error);
+      alert("Error updating mood: " + error.message);
+      setUpdateMoods("")
+     
+    
+      
+    }
 
   }
   return (
