@@ -2,7 +2,7 @@ import { deleteDoc, updateDoc } from "firebase/firestore";
 import { doc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import Auth from "./components/Auth";
-import { db } from "./config/firebase";
+import { db, auth } from "./config/firebase";
 import { collection, getDocs, addDoc } from "firebase/firestore";
 
 export default function App() {
@@ -11,7 +11,8 @@ export default function App() {
   const [speed, setSpeed] = useState(0);
   const [distance, setDistance] = useState(0);
   const [mood, setMood] = useState("");
-const [updateMoods, setUpdateMoods] = useState("")
+  const [updateMoods, setUpdateMoods] = useState("");
+
   const runsCollectionRef = collection(db, "Runs");
 
   useEffect(() => {
@@ -34,17 +35,24 @@ const [updateMoods, setUpdateMoods] = useState("")
 
   const onSubmit = async () => {
     try {
-      await addDoc(runsCollectionRef, {
-        Calories: calories,
-        Speed: speed,
-        Mood: mood,
-        Distance: distance,
-      });
-      // Clear the input fields after submission
-      setCalories(0);
-      setSpeed(0);
-      setDistance(0);
-      setMood("");
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        await addDoc(runsCollectionRef, {
+          Calories: calories,
+          Speed: speed,
+          Mood: mood,
+          Distance: distance,
+          userId: currentUser?.uid,
+        });
+        // Clear the input fields after submission
+        setCalories(0);
+        setSpeed(0);
+        setDistance(0);
+        setMood("");
+      } else {
+        console.log("User is not logged in");
+        // Handle the case where user is not logged in
+      }
     } catch (error) {
       console.log(error);
       alert(error.message);
@@ -96,7 +104,7 @@ const [updateMoods, setUpdateMoods] = useState("")
 
       <button onClick={onSubmit}>Submit</button>
 
-<div style={{display:"flex", justifyContent:"center"}}>
+<div style={{display:"flex", justifyContent:"center", gap:"100px"} }>
 
 {Runs ? (
         Runs.map((run) => (
